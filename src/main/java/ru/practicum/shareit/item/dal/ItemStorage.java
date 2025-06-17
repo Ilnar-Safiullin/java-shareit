@@ -15,5 +15,5 @@ public interface ItemStorage {
 
     public List<Item> getItemsByOwner(Long userId);
 
-    public List<Item> search (String text);
+    public List<Item> search(String text);
 }

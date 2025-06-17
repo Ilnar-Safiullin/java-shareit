@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class ItemMemoryStorage implements ItemStorage{
+public class ItemMemoryStorage implements ItemStorage {
     private final Map<Long, Item> items = new HashMap<>();
     private Long counterId = 0L;
 
