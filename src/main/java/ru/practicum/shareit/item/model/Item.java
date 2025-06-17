@@ -1,7 +1,17 @@
 package ru.practicum.shareit.item.model;
 
-/**
- * TODO Sprint add-controllers.
- */
+import lombok.Data;
+
+import java.util.HashMap;
+
+
+@Data
 public class Item {
+    private Long id;
+    private Long owner;
+    private String name;
+    private String description;
+    private Boolean available;
+    private int rentCount;
+    private HashMap<Long, String> reviews = new HashMap<>();
 }
