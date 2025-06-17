@@ -1,9 +1,10 @@
 package ru.practicum.shareit.item.service;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.RequestItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dal.ItemStorage;
@@ -13,27 +14,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final ItemStorage itemStorage;
     private final UserStorage userStorage;
 
 
     @Override
-    public ItemDto add(Long userId, ItemDto itemDto) {
+    public ItemDto add(Long userId, RequestItemDto requestItemDto) {
         userStorage.getUserById(userId);
-        Item item = ItemMapper.mapToItem(itemDto);
+        Item item = ItemMapper.mapToItem(requestItemDto);
         item = itemStorage.add(userId, item);
         return ItemMapper.mapToItemDto(item);
     }
 
     @Override
-    public ItemDto update(Long itemsId, ItemDto itemDto, Long userId) {
+    public ItemDto update(Long itemsId, RequestItemDto requestItemDto, Long userId) {
         Item existingItem = itemStorage.getById(itemsId);
         if (!existingItem.getOwner().equals(userId)) {
             throw new NotFoundException("Вы не можете редактировать чужую вещь");
         }
-        ItemMapper.updateItemFromRequest(existingItem, itemDto);
+        ItemMapper.updateItemFromRequest(existingItem, requestItemDto);
         itemStorage.update(existingItem);
         return ItemMapper.mapToItemDto(existingItem);
     }

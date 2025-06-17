@@ -7,6 +7,8 @@ import ru.practicum.shareit.item.model.Item;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 
 @Repository
 public class ItemMemoryStorage implements ItemStorage {
@@ -15,30 +17,27 @@ public class ItemMemoryStorage implements ItemStorage {
 
 
     @Override
-    public Item add(long userId, Item newItem) {
-        Item item = new Item();
+    public Item add(long userId, Item item) {
         item.setId(++counterId);
-        item.setName(newItem.getName());
         item.setOwner(userId);
-        item.setDescription(newItem.getDescription());
-        item.setAvailable(newItem.getAvailable());
-        item.setRentCount(newItem.getRentCount());
         items.put(item.getId(), item);
         return item;
     }
 
     @Override
-    public Item update(Item updateItem) {
-        return items.put(updateItem.getId(), updateItem);
+    public Item update(Item item) {
+        return items.put(item.getId(), item);
     }
 
     @Override
     public Item getById(long itemsId) {
-        Item item = items.get(itemsId);
-        if (item == null) {
-            throw new NotFoundException("Item с таким айди не найден");
+        Optional<Item> item = Optional.ofNullable(items.get(itemsId));
+
+        if (item.isEmpty()) {
+            throw new NotFoundException("Item с таким id нет");
         }
-        return item;
+
+        return item.get();
     }
 
     @Override
@@ -51,7 +50,7 @@ public class ItemMemoryStorage implements ItemStorage {
     @Override
     public List<Item> search(String text) {
         return items.values().stream()
-                .filter(item -> item.getAvailable() == true)
+                .filter(item -> item.getAvailable())
                 .filter(item -> item.getName().toLowerCase().contains(text.toLowerCase())
                         || item.getDescription().toLowerCase().contains(text.toLowerCase()))
                 .toList();

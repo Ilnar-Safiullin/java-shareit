@@ -2,9 +2,6 @@ package ru.practicum.shareit.item.model;
 
 import lombok.Data;
 
-import java.util.HashMap;
-
-
 @Data
 public class Item {
     private Long id;
@@ -12,6 +9,4 @@ public class Item {
     private String name;
     private String description;
     private Boolean available;
-    private int rentCount;
-    private HashMap<Long, String> reviews = new HashMap<>();
 }

@@ -6,6 +6,7 @@ import ru.practicum.shareit.user.model.User;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class UserMemoryStorage implements UserStorage {
@@ -14,20 +15,17 @@ public class UserMemoryStorage implements UserStorage {
 
 
     @Override
-    public User add(User newUser) {
-        User user = new User();
+    public User add(User user) {
+        validateEmail(user);
         user.setId(++counterId);
-        user.setName(newUser.getName());
-        validateEmail(newUser);
-        user.setEmail(newUser.getEmail());
         users.put(user.getId(), user);
         return user;
     }
 
     @Override
-    public User updateUser(User updateUser) {
-        validateEmail(updateUser);
-        return users.put(updateUser.getId(), updateUser);
+    public User updateUser(User user) {
+        validateEmail(user);
+        return users.put(user.getId(), user);
     }
 
     @Override
@@ -37,11 +35,13 @@ public class UserMemoryStorage implements UserStorage {
 
     @Override
     public User getUserById(long userId) {
-        User user = users.get(userId);
-        if (user == null) {
+        Optional<User> user = Optional.ofNullable(users.get(userId));
+
+        if (user.isEmpty()) {
             throw new NotFoundException("User с таким id не найден");
         }
-        return user;
+
+        return user.get();
     }
 
     private void validateEmail(User newUser) {

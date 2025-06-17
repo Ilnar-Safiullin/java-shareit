@@ -1,18 +1,17 @@
 package ru.practicum.shareit.item.mapper;
 
-import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.RequestItemDto;
 import ru.practicum.shareit.item.model.Item;
 
-@Component
 public class ItemMapper {
 
 
-    public static Item mapToItem(ItemDto itemDto) {
+    public static Item mapToItem(RequestItemDto requestItemDto) {
         Item item = new Item();
-        item.setName(itemDto.getName());
-        item.setDescription(itemDto.getDescription());
-        item.setAvailable(itemDto.getAvailable());
+        item.setName(requestItemDto.getName());
+        item.setDescription(requestItemDto.getDescription());
+        item.setAvailable(requestItemDto.getAvailable());
         return item;
     }
 
@@ -22,19 +21,18 @@ public class ItemMapper {
         dto.setName(item.getName());
         dto.setDescription(item.getDescription());
         dto.setAvailable(item.getAvailable());
-        dto.setReviews(item.getReviews());
         return dto;
     }
 
-    public static void updateItemFromRequest(Item existingItem, ItemDto itemDto) {
-        if (itemDto.getName() != null) {
-            existingItem.setName(itemDto.getName());
+    public static void updateItemFromRequest(Item existingItem, RequestItemDto requestItemDto) {
+        if (requestItemDto.getName() != null) {
+            existingItem.setName(requestItemDto.getName());
         }
-        if (itemDto.getDescription() != null) {
-            existingItem.setDescription(itemDto.getDescription());
+        if (requestItemDto.getDescription() != null) {
+            existingItem.setDescription(requestItemDto.getDescription());
         }
-        if (itemDto.getAvailable() != null) {
-            existingItem.setAvailable(itemDto.getAvailable());
+        if (requestItemDto.getAvailable() != null) {
+            existingItem.setAvailable(requestItemDto.getAvailable());
         }
     }
 
