@@ -9,6 +9,7 @@ import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dal.ItemStorage;
 import ru.practicum.shareit.user.dal.UserStorage;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,33 +23,34 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto add(Long userId, RequestItemDto requestItemDto) {
-        userStorage.getUserById(userId);
+        User user = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("User not found id: " + userId));
         Item item = ItemMapper.mapToItem(requestItemDto);
-        item = itemStorage.add(userId, item);
+        item.setOwner(user);
+        item = itemStorage.save(item);
         return ItemMapper.mapToItemDto(item);
     }
 
     @Override
     public ItemDto update(Long itemsId, RequestItemDto requestItemDto, Long userId) {
-        Item existingItem = itemStorage.getById(itemsId);
-        if (!existingItem.getOwner().equals(userId)) {
+        Item existingItem = itemStorage.findById(itemsId).orElseThrow(() -> new NotFoundException("Item not found"));
+        if (!existingItem.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Вы не можете редактировать чужую вещь");
         }
         ItemMapper.updateItemFromRequest(existingItem, requestItemDto);
-        itemStorage.update(existingItem);
+        itemStorage.save(existingItem);
         return ItemMapper.mapToItemDto(existingItem);
     }
 
     @Override
     public ItemDto getById(Long itemsId) {
-        Item item = itemStorage.getById(itemsId);
+        Item item = itemStorage.findById(itemsId).orElseThrow(() -> new NotFoundException("Item not found id: " + itemsId));
         return ItemMapper.mapToItemDto(item);
     }
 
     @Override
     public List<ItemDto> getItemsByOwner(Long userId) {
-        userStorage.getUserById(userId);
-        return itemStorage.getItemsByOwner(userId).stream()
+        userStorage.findById(userId).orElseThrow(() -> new NotFoundException("User not found id: " + userId));
+        return itemStorage.findByOwnerId(userId).stream()
                 .map(ItemMapper::mapToItemDto)
                 .toList();
     }
@@ -58,7 +60,7 @@ public class ItemServiceImpl implements ItemService {
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-        return itemStorage.search(text).stream()
+        return itemStorage.searchByText(text).stream()
                 .map(ItemMapper::mapToItemDto)
                 .toList();
     }

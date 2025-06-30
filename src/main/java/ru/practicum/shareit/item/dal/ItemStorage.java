@@ -1,19 +1,19 @@
 package ru.practicum.shareit.item.dal;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
-
 
 import java.util.List;
 
-public interface ItemStorage {
+@Repository
+public interface ItemStorage extends JpaRepository<Item, Long> {
+    @Query("SELECT i FROM Item i JOIN FETCH i.owner WHERE i.owner.id = :ownerId")
+    List<Item> findByOwnerId(@Param("ownerId") Long ownerId);
 
-    public Item add(long userId, Item newItem);
-
-    public Item update(Item updateItem);
-
-    public Item getById(long itemsId);
-
-    public List<Item> getItemsByOwner(Long userId);
-
-    public List<Item> search(String text);
+    @Query("SELECT i FROM Item i WHERE LOWER(i.name) LIKE LOWER(CONCAT('%', :text, '%')) OR " +
+            "LOWER(i.description) LIKE LOWER(CONCAT('%', :text, '%'))")
+    List<Item> searchByText(@Param("text") String text);
 }
