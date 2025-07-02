@@ -7,6 +7,7 @@ import ru.practicum.shareit.booking.dal.BookingStorage;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.exception.BookingTimeException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.comment.dal.CommentStorage;
 import ru.practicum.shareit.item.comment.dto.CommentDto;
@@ -130,10 +131,10 @@ public class ItemServiceImpl implements ItemService {
         LocalDateTime end = booking.getEnd(); //пришлось добавить иначе просто запросом с БД он не проходил постман тест
         LocalDateTime now = LocalDateTime.now(); //пришлось добавить иначе просто запросом с БД он не проходил постман тест
         if (!commentStorage.existsApprovedPastBookingForUserAndItem(itemId, userId)) {
-            throw new ValidationException("Пользователь не может оставить отзыв на эту вещь");
+            throw new BookingTimeException("Нет законченных бронирований");
         }
         if (start.isAfter(now) || end.isAfter(now)) { //пришлось добавить иначе просто запросом с БД он не проходил постман тест
-            throw new ValidationException("Пользователь не может оставить отзыв на эту вещь");
+            throw new BookingTimeException("Нет законченных бронирований");
         }
         Comment comment = CommentMapper.mapToComment(requestCommentDto);
         comment.setItem(item);
