@@ -13,7 +13,7 @@ public interface ItemStorage extends JpaRepository<Item, Long> {
     @Query("SELECT i FROM Item i JOIN FETCH i.owner WHERE i.owner.id = :ownerId")
     List<Item> findByOwnerId(@Param("ownerId") Long ownerId);
 
-    @Query("SELECT i FROM Item i WHERE LOWER(i.name) LIKE LOWER(CONCAT('%', :text, '%')) OR " +
-            "LOWER(i.description) LIKE LOWER(CONCAT('%', :text, '%'))")
+    @Query("SELECT i FROM Item i WHERE (LOWER(i.name) LIKE LOWER(CONCAT('%', :text, '%')) OR " +
+            "LOWER(i.description) LIKE LOWER(CONCAT('%', :text, '%'))) AND i.available = true")
     List<Item> searchByText(@Param("text") String text);
 }

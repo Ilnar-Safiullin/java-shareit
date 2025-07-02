@@ -1,14 +1,18 @@
-package ru.practicum.shareit.item.comment;
+package ru.practicum.shareit.item.comment.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "comments")
 @Getter @Setter
+@Data
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,4 +28,7 @@ public class Comment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author", nullable = false)
     private User author;
+
+    @Column(name = "created", nullable = false)
+    private LocalDateTime created;
 }

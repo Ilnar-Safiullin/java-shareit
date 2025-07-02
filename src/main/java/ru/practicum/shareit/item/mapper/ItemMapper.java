@@ -35,5 +35,4 @@ public class ItemMapper {
             existingItem.setAvailable(requestItemDto.getAvailable());
         }
     }
-
 }

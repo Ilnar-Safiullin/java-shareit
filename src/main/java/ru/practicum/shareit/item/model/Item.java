@@ -1,14 +1,15 @@
 package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import ru.practicum.shareit.user.model.User;
 
 
 @Entity
 @Table(name = "items")
-@Getter @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
