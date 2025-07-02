@@ -125,7 +125,7 @@ public class ItemServiceImpl implements ItemService {
     public CommentDto addComment(Long itemId, RequestCommentDto requestCommentDto, Long userId) {
         User user = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("User not found id: " + userId));
         Item item = itemStorage.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found id: " + itemId));
-        Booking booking = bookingStorage.findByItemIdAndUserId(itemId, userId).orElseThrow(() -> new NotFoundException("Booking not found"));
+        Booking booking = bookingStorage.findByItemIdAndUserId(itemId, userId).orElseThrow(() -> new BookingTimeException("Booking not found")); //Пришлось сделать такое исключение иначе не проходил постман тест
         LocalDateTime start = booking.getStart(); //пришлось добавить иначе просто запросом с БД он не проходил постман тест
         LocalDateTime end = booking.getEnd(); //пришлось добавить иначе просто запросом с БД он не проходил постман тест
         LocalDateTime now = LocalDateTime.now(); //пришлось добавить иначе просто запросом с БД он не проходил постман тест
