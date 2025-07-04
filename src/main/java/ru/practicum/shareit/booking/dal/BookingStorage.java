@@ -3,84 +3,64 @@ package ru.practicum.shareit.booking.dal;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import ru.practicum.shareit.booking.Status;
 import ru.practicum.shareit.booking.model.Booking;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 
 public interface BookingStorage extends JpaRepository<Booking, Long> {
 
+    //Сделал тут JOIN FETCH так как мы в ItemServiceImpl часто будем отправлять booking.getItem().getId() - что будет заставлять постоянно подгружать данные
+    @Query("SELECT b FROM Booking b JOIN FETCH b.item WHERE b.item.id IN :itemIds")
+    List<Booking> findAllByItemIdIn(@Param("itemIds") List<Long> itemIds);
+
+    // Получить все текущие не завершенные бронирования пользователя
+    List<Booking> findByBookerIdAndStatusAndEndAfter(Long userId, Status status, LocalDateTime now);
+
+    // Получить все бронирования пользователя с определенным статусом
+    List<Booking> findByBookerIdAndStatus(Long userId, Status status);
+
+    // Получить все завершенные бронирования пользователя
+    List<Booking> findByBookerIdAndStatusAndEndBefore(Long userId, Status status, LocalDateTime now);
+
+    // Получить все будущие бронирования пользователя
+    List<Booking> findByBookerIdAndStartAfter(Long userId, LocalDateTime now);
+
+    // Получить все бронирования пользователя отсортированные по дате начала
+    List<Booking> findByBookerIdOrderByStartDesc(Long userId);
+
+
+    // Проверить пересечение по времени
     @Query("""
-         SELECT b FROM Booking b
-         WHERE b.booker.id = :userId
-         AND b.status = APPROVED
-         AND b.start < CURRENT_TIMESTAMP
-         AND b.end > CURRENT_TIMESTAMP
-         ORDER BY b.start DESC
-         """)
-    List<Booking> findCurrentBookingsByUser(@Param("userId") Long userId);
+        SELECT COUNT(b) > 0
+        FROM Booking b
+        WHERE b.item.id = :itemId
+        AND (
+            (b.start < :endNewBooking AND b.end > :startNewBooking)
+            OR
+            (b.start > :startNewBooking AND b.end < :endNewBooking)
+            OR
+            (b.start < :endNewBooking AND b.end > :endNewBooking)
+        )
+        AND b.status = APPROVED
+        """)
+    Boolean timeCrossingCheck(@Param("itemId") Long itemId,
+                              @Param("startNewBooking") LocalDateTime startNewBooking,
+                              @Param("endNewBooking") LocalDateTime endNewBooking);
 
+
+    // Проверить завершенное бронирование пользователя по UserId и ItemId
     @Query("""
-         SELECT b FROM Booking b
-         WHERE b.booker.id = :userId
-         AND b.status = WAITING
-         ORDER BY b.start DESC
-         """)
-    List<Booking> findWaitingBookingsByUser(@Param("userId") Long userId);
-
-    @Query("""
-         SELECT b FROM Booking b
-         WHERE b.booker.id = :userId
-         AND b.status = APPROVED
-         AND b.end < CURRENT_TIMESTAMP
-         ORDER BY b.start DESC
-         """)
-    List<Booking> findPastBookingsByUser(@Param("userId") Long userId);
-
-    @Query("""
-         SELECT b FROM Booking b
-         WHERE b.booker.id = :userId
-         AND b.status = REJECTED
-         ORDER BY b.start DESC
-         """)
-    List<Booking> findRejectedBookingsByUser(@Param("userId") Long userId);
-
-    @Query("""
-         SELECT b FROM Booking b
-         WHERE b.booker.id = :userId
-         AND b.start > CURRENT_TIMESTAMP
-         ORDER BY b.start DESC
-         """)
-    List<Booking> findFutureBookingsByUser(@Param("userId") Long userId);
-
-    @Query("""
-            SELECT b FROM Booking b
-            WHERE b.item.id = :itemId
-            AND b.status = APPROVED
-            AND b.end <= CURRENT_TIMESTAMP
-            ORDER BY b.end DESC
-            LIMIT 1
-            """)
-    Booking findLastBooking(@Param("itemId") Long itemId);
-
-    @Query("""
-            SELECT b FROM Booking b
-            WHERE b.item.id = :itemId
-            AND b.status = APPROVED
-            AND b.start > CURRENT_TIMESTAMP
-            ORDER BY b.end DESC
-            LIMIT 1
-            """)
-    Booking findNextBooking(@Param("itemId") Long itemId);
-
-    @Query("SELECT b " +
-            " FROM Booking b " +
-            "WHERE b.item.id = :itemId " +
-            "AND b.booker.id = :userId " +
-            "AND b.status = APPROVED " +
-            "AND b.end < CURRENT_TIMESTAMP")
-    Optional<Booking> findByItemIdAndUserId(@Param("itemId") Long itemId, @Param("userId") Long userId);
-
-    List<Booking> findByBookerIdOrderByStartDesc(@Param("userId") Long userId);
+        SELECT COUNT(b) > 0
+        FROM Booking b
+        WHERE b.booker.id = :userId
+        AND b.item.id = :itemId
+        AND b.status = APPROVED
+        AND b.end < :now
+        """)
+    Boolean existsPastBookingsByBookerIdAndItemId(@Param("userId") Long userId,
+                                                  @Param("itemId") Long itemId,
+                                                  @Param("now") LocalDateTime now);
 }

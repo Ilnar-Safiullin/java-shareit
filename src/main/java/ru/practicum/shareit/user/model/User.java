@@ -8,7 +8,8 @@ import lombok.*;
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

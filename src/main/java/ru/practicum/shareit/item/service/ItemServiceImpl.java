@@ -61,7 +61,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto getById(Long itemsId) {
         Item item = itemStorage.findById(itemsId).orElseThrow(() -> new NotFoundException("Item not found id: " + itemsId));
         ItemDto itemDto = ItemMapper.mapToItemDto(item);
-        List<CommentDto> commentDtos = commentStorage.findAllByItemId(itemsId).stream()
+        List<CommentDto> commentDtos = commentStorage.findByItemId(itemsId).stream()
                 .map(CommentMapper::mapToCommentDto)
                 .toList();
         itemDto.setComments(commentDtos);
@@ -70,30 +70,31 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemsByOwner(Long userId) { //Очень сложный метод можно ли его упростить?
+    public List<ItemDto> getItemsByOwner(Long userId) {
         List<Item> items = itemStorage.findByOwnerId(userId);
         List<Long> itemIds = items.stream()
                 .map(Item::getId)
                 .collect(Collectors.toList());
 
         // Получаем комментарии
-        List<Comment> comments = commentStorage.findAllByItemIds(itemIds);
+        List<Comment> comments = commentStorage.findAllByItemIdIn(itemIds);
         Map<Long, List<Comment>> commentsByItem = comments.stream()
                 .collect(Collectors.groupingBy(comment -> comment.getItem().getId()));
 
-        // Получаем последние и следующие бронирования
+        // Получаем все бронирования за один запрос
+        List<Booking> bookings = bookingStorage.findAllByItemIdIn(itemIds);
         Map<Long, BookingDto> lastBookings = new HashMap<>();
         Map<Long, BookingDto> nextBookings = new HashMap<>();
 
-        for (Long itemId : itemIds) {
-            Booking lastBooking = bookingStorage.findLastBooking(itemId);
-            if (lastBooking != null) {
-                lastBookings.put(itemId, BookingMapper.mapToBookingDto(lastBooking));
-            }
+        for (Booking booking : bookings) {
+            BookingDto bookingDto = BookingMapper.mapToBookingDto(booking);
+            Long itemId = booking.getItem().getId();
 
-            Booking nextBooking = bookingStorage.findNextBooking(itemId);
-            if (nextBooking != null) {
-                nextBookings.put(itemId, BookingMapper.mapToBookingDto(nextBooking));
+            // Определяем, является ли это последним или следующим бронированием
+            if (booking.getStart().isBefore(LocalDateTime.now())) {
+                lastBookings.put(itemId, bookingDto);
+            } else {
+                nextBookings.put(itemId, bookingDto);
             }
         }
 
@@ -123,21 +124,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto addComment(Long itemId, RequestCommentDto requestCommentDto, Long userId) {
-        User user = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("User not found id: " + userId));
+        User author = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("User not found id: " + userId));
         Item item = itemStorage.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found id: " + itemId));
-        Booking booking = bookingStorage.findByItemIdAndUserId(itemId, userId).orElseThrow(() -> new BookingTimeException("Booking not found")); //Пришлось сделать такое исключение иначе не проходил постман тест
-        LocalDateTime start = booking.getStart(); //пришлось добавить иначе просто запросом с БД он не проходил постман тест
-        LocalDateTime end = booking.getEnd(); //пришлось добавить иначе просто запросом с БД он не проходил постман тест
-        LocalDateTime now = LocalDateTime.now(); //пришлось добавить иначе просто запросом с БД он не проходил постман тест
-        if (!commentStorage.existsApprovedPastBookingForUserAndItem(itemId, userId)) {
+        if (!bookingStorage.existsPastBookingsByBookerIdAndItemId(userId, itemId, LocalDateTime.now())) {
             throw new BookingTimeException("Нет законченных бронирований");
         }
-        if (start.isAfter(now) || end.isAfter(now)) { //пришлось добавить иначе просто запросом с БД он не проходил постман тест
-            throw new BookingTimeException("Нет законченных бронирований");
-        }
-        Comment comment = CommentMapper.mapToComment(requestCommentDto);
-        comment.setItem(item);
-        comment.setAuthor(user);
+        Comment comment = CommentMapper.mapToComment(requestCommentDto, item, author);
         comment = commentStorage.save(comment);
         return CommentMapper.mapToCommentDto(comment);
     }

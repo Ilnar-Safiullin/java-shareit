@@ -24,7 +24,8 @@ public class ItemController {
 
     @PostMapping
     @Validated(Marker.OnCreate.class)
-    public ItemDto add(@Valid @RequestBody RequestItemDto requestItemDto, @RequestHeader("X-Sharer-User-Id") long userId) {
+    public ItemDto add(@Valid @RequestBody RequestItemDto requestItemDto,
+                       @RequestHeader("X-Sharer-User-Id") long userId) {
         return itemService.add(userId, requestItemDto);
     }
 
@@ -52,7 +53,8 @@ public class ItemController {
 
     @PostMapping("{itemId}/comment")
     @Validated
-    public CommentDto addComment(@Valid @PathVariable Long itemId, @RequestBody RequestCommentDto requestCommentDto,
+    public CommentDto addComment(@PathVariable Long itemId,
+                                 @Valid @RequestBody RequestCommentDto requestCommentDto,
                                  @RequestHeader("X-Sharer-User-Id") Long userId) {
         return itemService.addComment(itemId, requestCommentDto, userId);
     }
