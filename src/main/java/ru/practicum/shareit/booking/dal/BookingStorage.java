@@ -13,7 +13,8 @@ import java.util.List;
 public interface BookingStorage extends JpaRepository<Booking, Long> {
 
     //Сделал тут JOIN FETCH так как мы в ItemServiceImpl часто будем отправлять booking.getItem().getId() - что будет заставлять постоянно подгружать данные
-    @Query("SELECT b FROM Booking b JOIN FETCH b.item WHERE b.item.id IN :itemIds")
+    //Также как в маппере он крутит в дто сущность то делает доп запрос, чтобы получить booker, а теперь не делает
+    @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker WHERE i.id IN :itemIds")
     List<Booking> findAllByItemIdIn(@Param("itemIds") List<Long> itemIds);
 
     // Получить все текущие не завершенные бронирования пользователя
@@ -70,12 +71,8 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
         FROM Booking b
         WHERE b.item.id = :itemId
         AND (
-            (b.start < :endNewBooking AND b.end > :startNewBooking)
-            OR
-            (b.start > :startNewBooking AND b.end < :endNewBooking)
-            OR
-            (b.start < :endNewBooking AND b.end > :endNewBooking)
-        )
+            :startNewBooking <= b.end AND :endNewBooking >= b.start
+            )
         AND b.status = APPROVED
         """)
     Boolean timeCrossingCheck(@Param("itemId") Long itemId,
