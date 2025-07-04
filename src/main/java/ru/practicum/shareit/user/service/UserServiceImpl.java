@@ -2,11 +2,14 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.RequestUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.dal.UserStorage;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,27 +20,29 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto add(RequestUserDto requestUserDto) {
         User user = UserMapper.mapToUser(requestUserDto);
-        user = userStorage.add(user);
+        user = userStorage.save(user);
         return UserMapper.mapToUserDto(user);
     }
 
     @Override
     public UserDto updateUser(long userId, RequestUserDto requestUserDto) {
-        User existingUser = userStorage.getUserById(userId);
+        Optional<User> userOptional = userStorage.findById(userId);
+        User existingUser = userOptional.orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
         UserMapper.updateUserFromRequest(existingUser, requestUserDto);
-        existingUser = userStorage.updateUser(existingUser);
+        existingUser = userStorage.save(existingUser);
         return UserMapper.mapToUserDto(existingUser);
     }
 
     @Override
     public void deleteUser(long userId) {
-        userStorage.getUserById(userId);
-        userStorage.deleteUser(userId);
+        userStorage.findById(userId).orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+        userStorage.deleteById(userId);
     }
 
     @Override
     public UserDto getUserById(long userId) {
-        User user = userStorage.getUserById(userId);
-        return UserMapper.mapToUserDto(user);
+        Optional<User> userOptional = userStorage.findById(userId);
+        User existingUser = userOptional.orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+        return UserMapper.mapToUserDto(existingUser);
     }
 }
