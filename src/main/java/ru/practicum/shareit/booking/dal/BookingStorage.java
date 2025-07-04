@@ -31,6 +31,57 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
     // Получить все бронирования пользователя отсортированные по дате начала
     List<Booking> findByBookerIdOrderByStartDesc(Long userId);
 
+    // Получить все текущие бронирования владельца предмета
+    @Query("""
+            SELECT b
+            FROM Booking b
+            WHERE b.item.owner.id = :ownerId
+            AND b.status = APPROVED
+            AND b.start < :now
+            AND b.end > :now
+            """)
+    List<Booking> findCurrentByOwnerId(@Param("ownerId") Long ownerId,
+                                       @Param("now") LocalDateTime now);
+
+    // Получить все бронирования владельца предмета по статусу
+    @Query("""
+            SELECT b
+            FROM Booking b
+            WHERE b.item.owner.id = :ownerId
+            AND b.status = :status
+            """)
+    List<Booking> findInStatusByOwnerId(@Param("ownerId") Long ownerId,
+                                        @Param("status") Status status);
+
+    // Получить все завершенные бронирования владельца предмета
+    @Query("""
+            SELECT b
+            FROM Booking b
+            WHERE b.item.owner.id = :ownerId
+            AND b.status = APPROVED
+            AND b.end < :now
+            """)
+    List<Booking> findPastByOwnerId(@Param("ownerId") Long ownerId,
+                                    @Param("now") LocalDateTime now);
+
+    // Получить все будущие бронирования владельца предмета
+    @Query("""
+            SELECT b
+            FROM Booking b
+            WHERE b.item.owner.id = :ownerId
+            AND b.start > :now
+            """)
+    List<Booking> findFutureByOwnerId(@Param("ownerId") Long ownerId,
+                                      @Param("now") LocalDateTime now);
+
+    // Получить все бронирования владельца предмета отсортированные по дате начала
+    @Query("""
+            SELECT b
+            FROM Booking b
+            WHERE b.item.owner.id = :ownerId
+            ORDER BY b.start DESC
+            """)
+    List<Booking> findCurrentByOwnerId(@Param("ownerId") Long ownerId);
 
     // Проверить пересечение по времени
     @Query("""
@@ -49,7 +100,6 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
     Boolean timeCrossingCheck(@Param("itemId") Long itemId,
                               @Param("startNewBooking") LocalDateTime startNewBooking,
                               @Param("endNewBooking") LocalDateTime endNewBooking);
-
 
     // Проверить завершенное бронирование пользователя по UserId и ItemId
     @Query("""

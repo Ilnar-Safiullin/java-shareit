@@ -99,13 +99,16 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getOwnerBookings(Long ownerId, State state) {
         userStorage.findById(ownerId).orElseThrow(() -> new NotFoundException("User not found"));
+        if (itemStorage.findByOwnerId(ownerId).isEmpty()) {
+            throw new NotFoundException("У данного пользователя нет предметов");
+        }
         List<Booking> userBookings = switch (state) {
-            case CURRENT -> bookingStorage.findByBookerIdAndStatusAndEndAfter(ownerId, Status.APPROVED, LocalDateTime.now());
-            case WAITING -> bookingStorage.findByBookerIdAndStatus(ownerId, Status.WAITING);
-            case PAST -> bookingStorage.findByBookerIdAndStatusAndEndBefore(ownerId, Status.APPROVED, LocalDateTime.now());
-            case REJECTED -> bookingStorage.findByBookerIdAndStatus(ownerId, Status.REJECTED);
-            case FUTURE -> bookingStorage.findByBookerIdAndStartAfter(ownerId, LocalDateTime.now());
-            default -> bookingStorage.findByBookerIdOrderByStartDesc(ownerId);
+            case CURRENT -> bookingStorage.findCurrentByOwnerId(ownerId, LocalDateTime.now());
+            case WAITING -> bookingStorage.findInStatusByOwnerId(ownerId, Status.WAITING);
+            case PAST -> bookingStorage.findPastByOwnerId(ownerId, LocalDateTime.now());
+            case REJECTED -> bookingStorage.findInStatusByOwnerId(ownerId, Status.REJECTED);
+            case FUTURE -> bookingStorage.findFutureByOwnerId(ownerId, LocalDateTime.now());
+            default -> bookingStorage.findCurrentByOwnerId(ownerId);
         };
         return userBookings.stream()
                 .map(BookingMapper::mapToBookingDto)
