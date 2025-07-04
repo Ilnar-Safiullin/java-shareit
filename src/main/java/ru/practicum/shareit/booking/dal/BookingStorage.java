@@ -17,7 +17,16 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
     List<Booking> findAllByItemIdIn(@Param("itemIds") List<Long> itemIds);
 
     // Получить все текущие не завершенные бронирования пользователя
-    List<Booking> findByBookerIdAndStatusAndEndAfter(Long userId, Status status, LocalDateTime now);
+    @Query("""
+            SELECT b
+            FROM Booking b
+            WHERE b.booker.id = :userId
+            AND b.status = APPROVED
+            AND b.start < :now
+            AND b.end > :now
+            """)
+    List<Booking> findCurrentByBookerId(@Param("userId") Long userId,
+                                       @Param("now") LocalDateTime now);
 
     // Получить все бронирования пользователя с определенным статусом
     List<Booking> findByBookerIdAndStatus(Long userId, Status status);
@@ -43,45 +52,17 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
     List<Booking> findCurrentByOwnerId(@Param("ownerId") Long ownerId,
                                        @Param("now") LocalDateTime now);
 
-    // Получить все бронирования владельца предмета по статусу
-    @Query("""
-            SELECT b
-            FROM Booking b
-            WHERE b.item.owner.id = :ownerId
-            AND b.status = :status
-            """)
-    List<Booking> findInStatusByOwnerId(@Param("ownerId") Long ownerId,
-                                        @Param("status") Status status);
+    // Получить все бронирования владельца предмета с определенным статусом
+    List<Booking> findByItemOwnerIdAndStatus(Long ownerId, Status status);
 
     // Получить все завершенные бронирования владельца предмета
-    @Query("""
-            SELECT b
-            FROM Booking b
-            WHERE b.item.owner.id = :ownerId
-            AND b.status = APPROVED
-            AND b.end < :now
-            """)
-    List<Booking> findPastByOwnerId(@Param("ownerId") Long ownerId,
-                                    @Param("now") LocalDateTime now);
+    List<Booking> findByItemOwnerIdAndStatusAndEndBefore(Long userId, Status status, LocalDateTime now);
 
     // Получить все будущие бронирования владельца предмета
-    @Query("""
-            SELECT b
-            FROM Booking b
-            WHERE b.item.owner.id = :ownerId
-            AND b.start > :now
-            """)
-    List<Booking> findFutureByOwnerId(@Param("ownerId") Long ownerId,
-                                      @Param("now") LocalDateTime now);
+    List<Booking> findByItemOwnerIdAndStartAfter(Long ownerId, LocalDateTime now);
 
     // Получить все бронирования владельца предмета отсортированные по дате начала
-    @Query("""
-            SELECT b
-            FROM Booking b
-            WHERE b.item.owner.id = :ownerId
-            ORDER BY b.start DESC
-            """)
-    List<Booking> findCurrentByOwnerId(@Param("ownerId") Long ownerId);
+    List<Booking> findByItemOwnerIdOrderByStartDesc(Long ownerId);
 
     // Проверить пересечение по времени
     @Query("""

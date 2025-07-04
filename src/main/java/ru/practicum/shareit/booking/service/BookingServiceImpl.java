@@ -84,7 +84,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> getUserBookings(Long userId, State state) {
         userStorage.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         List<Booking> userBookings = switch (state) {
-            case CURRENT -> bookingStorage.findByBookerIdAndStatusAndEndAfter(userId, Status.APPROVED, LocalDateTime.now());
+            case CURRENT -> bookingStorage.findCurrentByBookerId(userId, LocalDateTime.now());
             case WAITING -> bookingStorage.findByBookerIdAndStatus(userId, Status.WAITING);
             case PAST -> bookingStorage.findByBookerIdAndStatusAndEndBefore(userId, Status.APPROVED, LocalDateTime.now());
             case REJECTED -> bookingStorage.findByBookerIdAndStatus(userId, Status.REJECTED);
@@ -104,11 +104,11 @@ public class BookingServiceImpl implements BookingService {
         }
         List<Booking> userBookings = switch (state) {
             case CURRENT -> bookingStorage.findCurrentByOwnerId(ownerId, LocalDateTime.now());
-            case WAITING -> bookingStorage.findInStatusByOwnerId(ownerId, Status.WAITING);
-            case PAST -> bookingStorage.findPastByOwnerId(ownerId, LocalDateTime.now());
-            case REJECTED -> bookingStorage.findInStatusByOwnerId(ownerId, Status.REJECTED);
-            case FUTURE -> bookingStorage.findFutureByOwnerId(ownerId, LocalDateTime.now());
-            default -> bookingStorage.findCurrentByOwnerId(ownerId);
+            case WAITING -> bookingStorage.findByItemOwnerIdAndStatus(ownerId, Status.WAITING);
+            case PAST -> bookingStorage.findByItemOwnerIdAndStatusAndEndBefore(ownerId, Status.APPROVED, LocalDateTime.now());
+            case REJECTED -> bookingStorage.findByItemOwnerIdAndStatus(ownerId, Status.REJECTED);
+            case FUTURE -> bookingStorage.findByItemOwnerIdAndStartAfter(ownerId, LocalDateTime.now());
+            default -> bookingStorage.findByItemOwnerIdOrderByStartDesc(ownerId);
         };
         return userBookings.stream()
                 .map(BookingMapper::mapToBookingDto)
