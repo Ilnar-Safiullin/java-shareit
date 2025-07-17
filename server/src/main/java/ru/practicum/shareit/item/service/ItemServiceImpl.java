@@ -14,10 +14,12 @@ import ru.practicum.shareit.item.comment.dto.RequestCommentDto;
 import ru.practicum.shareit.item.comment.mapper.CommentMapper;
 import ru.practicum.shareit.item.comment.model.Comment;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.RequestItemDto;
+import ru.practicum.shareit.item.dto.ItemBodyDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dal.ItemStorage;
+import ru.practicum.shareit.request.dal.RequestStorage;
+import ru.practicum.shareit.request.model.Request;
 import ru.practicum.shareit.user.dal.UserStorage;
 import ru.practicum.shareit.user.model.User;
 
@@ -35,24 +37,29 @@ public class ItemServiceImpl implements ItemService {
     private final UserStorage userStorage;
     private final BookingStorage bookingStorage;
     private final CommentStorage commentStorage;
+    private final RequestStorage requestStorage;
 
 
     @Override
-    public ItemDto add(Long userId, RequestItemDto requestItemDto) {
+    public ItemDto add(Long userId, ItemBodyDto itemBodyDto) {
         User user = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("User not found id: " + userId));
-        Item item = ItemMapper.mapToItem(requestItemDto);
+        Item item = ItemMapper.mapToItem(itemBodyDto);
         item.setOwner(user);
+        if (itemBodyDto.getRequestId() != null) {
+            Request request = requestStorage.findById(itemBodyDto.getRequestId()).orElseThrow(() -> new NotFoundException("Request not found"));
+            item.setRequest(request);
+        }
         item = itemStorage.save(item);
         return ItemMapper.mapToItemDto(item);
     }
 
     @Override
-    public ItemDto update(Long itemsId, RequestItemDto requestItemDto, Long userId) {
+    public ItemDto update(Long itemsId, ItemBodyDto itemBodyDto, Long userId) {
         Item existingItem = itemStorage.findById(itemsId).orElseThrow(() -> new NotFoundException("Item not found"));
         if (!existingItem.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Вы не можете редактировать чужую вещь");
         }
-        ItemMapper.updateItemFromRequest(existingItem, requestItemDto);
+        ItemMapper.updateItemFromRequest(existingItem, itemBodyDto);
         itemStorage.save(existingItem);
         return ItemMapper.mapToItemDto(existingItem);
     }

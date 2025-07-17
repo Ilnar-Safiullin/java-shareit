@@ -8,7 +8,7 @@ import ru.practicum.shareit.annotation.Marker;
 import ru.practicum.shareit.item.comment.dto.CommentDto;
 import ru.practicum.shareit.item.comment.dto.RequestCommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.RequestItemDto;
+import ru.practicum.shareit.item.dto.ItemBodyDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.Collection;
@@ -24,16 +24,16 @@ public class ItemController {
 
     @PostMapping
     @Validated(Marker.OnCreate.class)
-    public ItemDto add(@Valid @RequestBody RequestItemDto requestItemDto,
+    public ItemDto add(@Valid @RequestBody ItemBodyDto itemBodyDto,
                        @RequestHeader("X-Sharer-User-Id") long userId) {
-        return itemService.add(userId, requestItemDto);
+        return itemService.add(userId, itemBodyDto);
     }
 
     @PatchMapping("/{itemsId}")
-    public ItemDto update(@PathVariable long itemsId, @RequestBody RequestItemDto requestItemDto,
+    public ItemDto update(@PathVariable long itemsId, @RequestBody ItemBodyDto itemBodyDto,
                           @RequestHeader("X-Sharer-User-Id") Long userId) {
 
-        return itemService.update(itemsId, requestItemDto, userId);
+        return itemService.update(itemsId, itemBodyDto, userId);
     }
 
     @GetMapping("/{itemsId}")

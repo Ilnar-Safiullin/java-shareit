@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -14,4 +15,5 @@ public class RequestDto {
     private String description;
     private UserDto requester;
     private LocalDateTime created;
+    private Set<ItemDto> items;
 }

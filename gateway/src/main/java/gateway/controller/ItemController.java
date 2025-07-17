@@ -1,18 +1,17 @@
 package gateway.controller;
 
 import gateway.annotation.Marker;
+import gateway.client.ItemClient;
 import gateway.dto.CommentDto;
 import gateway.dto.ItemDto;
 import gateway.dto.RequestCommentDto;
-import gateway.dto.RequestItemDto;
+import gateway.dto.ItemBodyDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 
 import java.util.Collection;
@@ -24,43 +23,42 @@ import java.util.List;
 @RequestMapping("/items")
 @Validated
 public class ItemController {
-    private final RestTemplate restTemplate;
-    private final String shareitServiceUrl = "http://localhost:9090/items";
+    private final ItemClient itemClient;
 
 
     @PostMapping
     @Validated(Marker.OnCreate.class)
-    public ResponseEntity<ItemDto> add(@Valid @RequestBody RequestItemDto requestItemDto,
+    public ResponseEntity<ItemDto> add(@Valid @RequestBody ItemBodyDto itemBodyDto,
                                        @RequestHeader("X-Sharer-User-Id") long userId) {
-        String url = shareitServiceUrl;
-        return sendRequest(url, HttpMethod.POST, requestItemDto, ItemDto.class, userId);
+        log.info("Запрос на добавление элемента: {}, для пользователя с ID {}", itemBodyDto, userId);
+        return itemClient.add(itemBodyDto, userId);
     }
 
     @PatchMapping("/{itemsId}")
     public ResponseEntity<ItemDto> update(@PathVariable long itemsId,
-                                          @Valid @RequestBody RequestItemDto requestItemDto,
+                                          @Valid @RequestBody ItemBodyDto itemBodyDto,
                                           @RequestHeader("X-Sharer-User-Id") Long userId) {
-        String url = shareitServiceUrl + "/" + itemsId;
-        return sendRequest(url, HttpMethod.PATCH, requestItemDto, ItemDto.class, userId);
+        log.info("Запрос на обновление элемента с ID {}: {}, для пользователя с ID {}", itemsId, itemBodyDto, userId);
+        return itemClient.update(itemsId, itemBodyDto, userId);
     }
 
     @GetMapping("/{itemsId}")
     public ResponseEntity<ItemDto> getById(@PathVariable long itemsId) {
-        String url = shareitServiceUrl + "/" + itemsId;
-        return sendRequest(url, HttpMethod.GET, null, ItemDto.class, null);
+        log.info("Запрос на получение элемента с ID {}", itemsId);
+        return itemClient.getById(itemsId);
     }
 
     @GetMapping
     public ResponseEntity<Collection<ItemDto>> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        String url = shareitServiceUrl + "?ownerId=" + userId;
-        return sendRequest(url, HttpMethod.GET, null, new ParameterizedTypeReference<Collection<ItemDto>>() {}, userId);
+        log.info("Запрос на получение элементов для владельца с ID {}", userId);
+        return itemClient.getItemsByOwner(userId);
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<ItemDto>> search(@RequestParam String text,
                                                 @RequestHeader("X-Sharer-User-Id") Long userId) {
-        String url = shareitServiceUrl + "/search?text=" + text;
-        return sendRequest(url, HttpMethod.GET, null, new ParameterizedTypeReference<List<ItemDto>>() {}, userId);
+        log.info("Запрос на поиск элементов по тексту '{}' для пользователя с ID {}", text, userId);
+        return itemClient.search(text, userId);
     }
 
     @PostMapping("{itemId}/comment")
@@ -68,26 +66,7 @@ public class ItemController {
     public ResponseEntity<CommentDto> addComment(@PathVariable Long itemId,
                                                  @Valid @RequestBody RequestCommentDto requestCommentDto,
                                                  @RequestHeader("X-Sharer-User-Id") Long userId) {
-        String url = shareitServiceUrl + "/" + itemId + "/comment";
-        return sendRequest(url, HttpMethod.POST, requestCommentDto, CommentDto.class, userId);
-    }
-
-
-    private <T> ResponseEntity<T> sendRequest(String url, HttpMethod method, Object requestBody, Class<T> responseType, Long userId) {
-        HttpHeaders headers = new HttpHeaders();
-        if (userId != null) {
-            headers.set("X-Sharer-User-Id", String.valueOf(userId));
-        }
-        HttpEntity<Object> requestEntity = new HttpEntity<>(requestBody, headers);
-        return restTemplate.exchange(url, method, requestEntity, responseType);
-    }
-
-    private <T> ResponseEntity<T> sendRequest(String url, HttpMethod method, Object requestBody, ParameterizedTypeReference<T> responseType, Long userId) {
-        HttpHeaders headers = new HttpHeaders();
-        if (userId != null) {
-            headers.set("X-Sharer-User-Id", String.valueOf(userId));
-        }
-        HttpEntity<Object> requestEntity = new HttpEntity<>(requestBody, headers);
-        return restTemplate.exchange(url, method, requestEntity, responseType);
+        log.info("Запрос на добавление комментария к элементу с ID {}: {}, для пользователя с ID {}", itemId, requestCommentDto, userId);
+        return itemClient.addComment(itemId, requestCommentDto, userId);
     }
 }

@@ -1,12 +1,17 @@
-package ru.practicum.shareit.item.dto;
+package gateway.dto;
 
+import gateway.annotation.Marker;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.practicum.shareit.annotation.Marker;
+import lombok.NoArgsConstructor;
+
 
 @Data
-public class RequestItemDto {
+@AllArgsConstructor
+@NoArgsConstructor
+public class ItemBodyDto {
 
     @NotBlank(message = "Имя не может быть пустым", groups = {Marker.OnCreate.class})
     private String name;
@@ -16,4 +21,6 @@ public class RequestItemDto {
 
     @NotNull(message = "Cтатус не может быть пустым", groups = {Marker.OnCreate.class})
     private Boolean available;
+
+    private Long requestId;
 }

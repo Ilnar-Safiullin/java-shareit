@@ -1,84 +1,65 @@
 package gateway.controller;
 
+import gateway.client.BookingClient;
 import gateway.dto.BookingDto;
 import gateway.dto.RequestBookingDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.*;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "/bookings")
+@Validated
 public class BookingController {
-    private final RestTemplate restTemplate;
-    private final String shareitServiceUrl = "http://localhost:9090/bookings";
+    private final BookingClient bookingClient;
 
 
     @PostMapping
     public ResponseEntity<BookingDto> createBooking(@Valid @RequestBody RequestBookingDto requestBookingDto,
                                                     @RequestHeader("X-Sharer-User-Id") Long userId) {
-        String url = shareitServiceUrl;
-        return sendRequest(url, HttpMethod.POST, requestBookingDto, BookingDto.class, userId);
+        log.info("Запрос на создание бронирования: {}, для пользователя с ID {}", requestBookingDto, userId);
+        return bookingClient.createBooking(requestBookingDto, userId);
     }
 
     @GetMapping("/{bookingId}")
     public ResponseEntity<BookingDto> getBookingById(@PathVariable Long bookingId,
                                                      @RequestHeader("X-Sharer-User-Id") Long userId) {
-        String url = shareitServiceUrl + "/" + bookingId;
-        return sendRequest(url, HttpMethod.GET, null, BookingDto.class, userId);
+        log.info("Запрос на получение бронирования с ID {} для пользователя с ID {}", bookingId, userId);
+        return bookingClient.getBookingById(bookingId, userId);
     }
 
     @PatchMapping("/{bookingId}")
     public ResponseEntity<BookingDto> approveBooking(@PathVariable Long bookingId,
                                                      @RequestParam Boolean approved,
                                                      @RequestHeader("X-Sharer-User-Id") Long ownerId) {
-        String url = shareitServiceUrl + "/" + bookingId + "?approved=" + approved;
-        return sendRequest(url, HttpMethod.PATCH, null, BookingDto.class, ownerId);
+        log.info("Запрос на одобрение бронирования с ID {}: {} для владельца с ID {}", bookingId, approved, ownerId);
+        return bookingClient.approveBooking(bookingId, approved, ownerId);
     }
 
     @GetMapping
     public ResponseEntity<List<BookingDto>> getUserBookings(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                             @RequestParam(defaultValue = "ALL") State state) {
-        String url = shareitServiceUrl + "?state=" + state;
-        return sendRequest(url, HttpMethod.GET, null,new ParameterizedTypeReference<List<BookingDto>>() {}, userId);
+        log.info("Запрос на получение бронирований для пользователя с ID {} в состоянии {}", userId, state);
+        return bookingClient.getUserBookings(userId, state);
     }
 
     @GetMapping("/owner")
     public ResponseEntity<List<BookingDto>> getOwnerBookings(@RequestHeader("X-Sharer-User-Id") Long ownerId,
                                                              @RequestParam(defaultValue = "ALL") State state) {
-        return sendRequest(shareitServiceUrl + "/owner?state=" + state, HttpMethod.GET, null,
-                new ParameterizedTypeReference<List<BookingDto>>() {}, ownerId);
+        log.info("Запрос на получение бронирований для владельца с ID {} в состоянии {}", ownerId, state);
+        return bookingClient.getOwnerBookings(ownerId, state);
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<BookingDto>> getAllBookings() {
-        return sendRequest(shareitServiceUrl + "/all", HttpMethod.GET, null,
-                new ParameterizedTypeReference<List<BookingDto>>() {}, null);
-    }
-
-    private <T> ResponseEntity<T> sendRequest(String url, HttpMethod method, Object requestBody, Class<T> responseType, Long userId) {
-        HttpHeaders headers = new HttpHeaders();
-        if (userId != null) {
-            headers.set("X-Sharer-User-Id", String.valueOf(userId));
-        }
-        HttpEntity<Object> requestEntity = new HttpEntity<>(requestBody, headers);
-        return restTemplate.exchange(url, method, requestEntity, responseType);
-    }
-
-    private <T> ResponseEntity<T> sendRequest(String url, HttpMethod method, Object requestBody, ParameterizedTypeReference<T> responseType, Long userId) {
-        HttpHeaders headers = new HttpHeaders();
-        if (userId != null) {
-            headers.set("X-Sharer-User-Id", String.valueOf(userId));
-        }
-        HttpEntity<Object> requestEntity = new HttpEntity<>(requestBody, headers);
-        return restTemplate.exchange(url, method, requestEntity, responseType);
+        log.info("Запрос на получение всех бронирований");
+        return bookingClient.getAllBookings();
     }
 }
