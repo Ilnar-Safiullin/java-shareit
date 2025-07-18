@@ -48,9 +48,13 @@ public class BookingServiceImplIntegrationTest {
 
     @BeforeEach
     public void setUp() {
+        bookingStorage.deleteAll();
+        itemStorage.deleteAll();
+        userStorage.deleteAll();
 
-        owner = new User(null, "Owner", "owner@example.com");
-        booker = new User(null, "User", "user@example.com");
+        String timestamp = String.valueOf(System.currentTimeMillis()); //H2 на гитхаб почемуто не ролбекает базу, а локально все норм было, пришлось добавить
+        owner = new User(null, "Owner", "owner_" + timestamp + "@example.com");
+        booker = new User(null, "User", "user_" + timestamp + "@example.com");
         userStorage.save(owner);
         userStorage.save(booker);
 
@@ -108,10 +112,11 @@ public class BookingServiceImplIntegrationTest {
     @Test
     @Rollback
     public void testGetOwnerBookings_NoItems() {
-        Long nonExistentOwnerId = booker.getId();
+        User userWithoutItems = new User(null, "NoItemsUser", "noitems@example.com");
+        userStorage.save(userWithoutItems);
 
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            bookingService.getOwnerBookings(nonExistentOwnerId, State.ALL);
+            bookingService.getOwnerBookings(userWithoutItems.getId(), State.ALL);
         });
 
         assertThat(exception.getMessage()).isEqualTo("У данного пользователя нет предметов");
