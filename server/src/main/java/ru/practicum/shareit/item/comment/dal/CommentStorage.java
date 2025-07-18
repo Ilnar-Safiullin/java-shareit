@@ -10,7 +10,7 @@ public interface CommentStorage extends JpaRepository<Comment, Long> {
 
     List<Comment> findByItemId(Long itemIds);
 
-    //Сделал тут JOIN FETCH так как мы в ItemServiceImpl часто будем отправлять comment.getItem().getId() - что будет заставлять постоянно подгружать данные
-    @Query("SELECT c FROM Comment c JOIN FETCH c.item WHERE c.item.id IN :itemIds")
+    //Сделал тут JOIN FETCH иначе в интеграционном тесте метода getItemsByOwner получал LazyException
+    @Query("SELECT c FROM Comment c JOIN FETCH c.item i JOIN FETCH c.author a WHERE i.id IN :itemIds")
     List<Comment> findAllByItemIdIn(@Param("itemIds") List<Long> itemIds);
 }

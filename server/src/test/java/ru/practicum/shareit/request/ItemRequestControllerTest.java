@@ -1,8 +1,7 @@
-package gateway.controller;
+package ru.practicum.shareit.request;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import gateway.client.ItemRequestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -11,23 +10,29 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import gateway.dto.*;
+import ru.practicum.shareit.request.dto.RequestDto;
+import ru.practicum.shareit.request.dto.RequestItemDto;
+import ru.practicum.shareit.request.service.RequestService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.mockito.Mockito.times;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 class ItemRequestControllerTest {
 
     @Mock
-    private ItemRequestClient itemRequestClient;
+    private RequestService requestService;
 
     @InjectMocks
     private ItemRequestController itemRequestController;
@@ -50,7 +55,7 @@ class ItemRequestControllerTest {
         RequestItemDto requestItemDto = new RequestItemDto("test", LocalDateTime.now());
         RequestDto requestDto = new RequestDto(1L, "test", null, LocalDateTime.now(), new HashSet<>());
 
-        when(itemRequestClient.addItemRequest(ArgumentMatchers.any(), anyLong())).thenReturn(ResponseEntity.ok(requestDto));
+        when(requestService.addItemRequest(ArgumentMatchers.any(), anyLong())).thenReturn(requestDto);
 
         mockMvc.perform(post("/requests")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -61,7 +66,7 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.description").value("test"));
 
-        verify(itemRequestClient, times(1)).addItemRequest(any(), anyLong());
+        verify(requestService, times(1)).addItemRequest(any(), anyLong());
     }
 
     @Test
@@ -69,7 +74,7 @@ class ItemRequestControllerTest {
         long userId = 1L;
         RequestDto requestDto = new RequestDto(1L, "test", null, LocalDateTime.now(), new HashSet<>());
 
-        when(itemRequestClient.getUserItemRequests(userId)).thenReturn(ResponseEntity.ok(Collections.singletonList(requestDto)));
+        when(requestService.getUserItemRequests(userId)).thenReturn(Collections.singletonList(requestDto));
 
         mockMvc.perform(get("/requests")
                         .header("X-Sharer-User-Id", userId))
@@ -78,7 +83,7 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].description").value("test"));
 
-        verify(itemRequestClient, times(1)).getUserItemRequests(userId);
+        verify(requestService, times(1)).getUserItemRequests(userId);
     }
 
     @Test
@@ -86,7 +91,7 @@ class ItemRequestControllerTest {
         long userId = 1L;
         RequestDto requestDto = new RequestDto(1L, "test", null, LocalDateTime.now(), new HashSet<>());
 
-        when(itemRequestClient.getOtherUsersItemRequests(userId)).thenReturn(ResponseEntity.ok(Collections.singletonList(requestDto)));
+        when(requestService.getOtherUsersItemRequests(userId)).thenReturn(Collections.singletonList(requestDto));
 
         mockMvc.perform(get("/requests/all")
                         .header("X-Sharer-User-Id", userId))
@@ -95,7 +100,7 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].description").value("test"));
 
-        verify(itemRequestClient, times(1)).getOtherUsersItemRequests(userId);
+        verify(requestService, times(1)).getOtherUsersItemRequests(userId);
     }
 
     @Test
@@ -104,7 +109,7 @@ class ItemRequestControllerTest {
         long requestId = 1L;
         RequestDto requestDto = new RequestDto(requestId, "test", null, LocalDateTime.now(), new HashSet<>());
 
-        when(itemRequestClient.getItemRequestById(userId, requestId)).thenReturn(ResponseEntity.ok(requestDto));
+        when(requestService.getItemRequestById(userId, requestId)).thenReturn(requestDto);
 
         mockMvc.perform(get("/requests/{requestId}", requestId)
                         .header("X-Sharer-User-Id", userId))
@@ -113,6 +118,6 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.id").value(requestId))
                 .andExpect(jsonPath("$.description").value("test"));
 
-        verify(itemRequestClient, times(1)).getItemRequestById(userId, requestId);
+        verify(requestService, times(1)).getItemRequestById(userId, requestId);
     }
 }

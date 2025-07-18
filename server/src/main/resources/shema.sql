@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS items (
   available BOOLEAN NOT NULL,
   request BIGINT NULL,
   CONSTRAINT pk_item PRIMARY KEY (id),
-  CONSTRAINT fk_item_owner FOREIGN KEY (owner) REFERENCES users(id)
+  CONSTRAINT fk_item_owner FOREIGN KEY (owner) REFERENCES users(id),
   CONSTRAINT fk_item_request FOREIGN KEY (request) REFERENCES requests(id)
 );
 
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   booker BIGINT NOT NULL,
   status VARCHAR(50) NOT NULL,
   CONSTRAINT pk_booking PRIMARY KEY (id),
-  CONSTRAINT fk_booking_item FOREIGN KEY (item_id) REFERENCES items(id),
+  CONSTRAINT fk_booking_item FOREIGN KEY (item) REFERENCES items(id),
   CONSTRAINT fk_booking_booker FOREIGN KEY (booker) REFERENCES users(id),
   CONSTRAINT chk_dates CHECK (end_date > start_date)
 );

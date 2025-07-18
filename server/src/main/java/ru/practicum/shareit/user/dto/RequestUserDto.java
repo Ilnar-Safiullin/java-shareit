@@ -1,15 +1,14 @@
 package ru.practicum.shareit.user.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.practicum.shareit.annotation.Marker;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class RequestUserDto {
-    private String name;
 
-    @Email(message = "Ошибка в email", groups = {Marker.OnCreate.class, Marker.OnUpdate.class})
-    @NotBlank(message = "Email обязателен", groups = Marker.OnCreate.class)
+    private String name;
     private String email;
 }

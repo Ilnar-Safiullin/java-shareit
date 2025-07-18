@@ -15,7 +15,6 @@ import ru.practicum.shareit.request.model.Request;
 import ru.practicum.shareit.user.dal.UserStorage;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

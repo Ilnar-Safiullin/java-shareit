@@ -6,7 +6,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
 @SpringBootTest
-class ShareItTests {
+class ShareItServerTest {
 
 	@Test
 	void contextLoads() {

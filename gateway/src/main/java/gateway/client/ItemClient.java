@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class ItemClient extends BaseClient {
-    private final String SERVER_STRING_URL = "http://localhost:9090/items";
+    private final String serverStringUrl = "http://localhost:9090/items";//не могу сделать заглавными ругается чекСтайл. И статик нельзя наверное, он же во всех классах есть
 
 
     protected ItemClient(RestTemplate restTemplate) {
@@ -25,31 +25,31 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<ItemDto> add(ItemBodyDto itemBodyDto, long userId) {
-        return sendRequest(SERVER_STRING_URL, HttpMethod.POST, itemBodyDto, ItemDto.class, userId);
+        return sendRequest(serverStringUrl, HttpMethod.POST, itemBodyDto, ItemDto.class, userId);
     }
 
     public ResponseEntity<ItemDto> update(long itemsId, ItemBodyDto itemBodyDto, Long userId) {
-        String url = SERVER_STRING_URL + "/" + itemsId;
+        String url = serverStringUrl + "/" + itemsId;
         return sendRequest(url, HttpMethod.PATCH, itemBodyDto, ItemDto.class, userId);
     }
 
     public ResponseEntity<ItemDto> getById(long itemsId) {
-        String url = SERVER_STRING_URL + "/" + itemsId;
+        String url = serverStringUrl + "/" + itemsId;
         return sendRequest(url, HttpMethod.GET, null, ItemDto.class, null);
     }
 
     public ResponseEntity<Collection<ItemDto>> getItemsByOwner(Long userId) {
-        String url = SERVER_STRING_URL + "?ownerId=" + userId;
+        String url = serverStringUrl + "?ownerId=" + userId;
         return sendRequest(url, HttpMethod.GET, null, new ParameterizedTypeReference<Collection<ItemDto>>() {}, userId);
     }
 
     public ResponseEntity<List<ItemDto>> search(String text, Long userId) {
-        String url = SERVER_STRING_URL + "/search?text=" + text;
+        String url = serverStringUrl + "/search?text=" + text;
         return sendRequest(url, HttpMethod.GET, null, new ParameterizedTypeReference<List<ItemDto>>() {}, userId);
     }
 
     public ResponseEntity<CommentDto> addComment(Long itemId, RequestCommentDto requestCommentDto, Long userId) {
-        String url = SERVER_STRING_URL + "/" + itemId + "/comment";
+        String url = serverStringUrl + "/" + itemId + "/comment";
         return sendRequest(url, HttpMethod.POST, requestCommentDto, CommentDto.class, userId);
     }
 

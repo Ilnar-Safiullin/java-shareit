@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dal.BookingStorage;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
@@ -78,6 +80,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getItemsByOwner(Long userId) {
+        log.info("Начинается метод getItemsByOwner для пользователя с ID: {}", userId);
         List<Item> items = itemStorage.findByOwnerId(userId);
         List<Long> itemIds = items.stream()
                 .map(Item::getId)
@@ -106,7 +109,7 @@ public class ItemServiceImpl implements ItemService {
         }
 
         // Преобразуем в ItemDto
-        return items.stream().map(item -> {
+        List<ItemDto> itemDtos = items.stream().map(item -> {
             ItemDto itemDto = ItemMapper.mapToItemDto(item);
             itemDto.setComments(commentsByItem.getOrDefault(itemDto.getId(), List.of()).stream()
                     .map(CommentMapper::mapToCommentDto)
@@ -117,6 +120,9 @@ public class ItemServiceImpl implements ItemService {
 
             return itemDto;
         }).toList();
+
+        log.info("Заканчивается метод getItemsByOwner для пользователя с ID: {}", userId);
+        return itemDtos;
     }
 
     @Override
