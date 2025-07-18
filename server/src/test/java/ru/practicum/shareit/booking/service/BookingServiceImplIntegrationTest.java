@@ -120,7 +120,7 @@ public class BookingServiceImplIntegrationTest {
         assertThat(itemStorage.findByOwnerId(userWithoutItems.getId())).isEmpty();
 
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            bookingService.getOwnerBookings(userWithoutItems.getId(), State.ALL);
+            bookingService.getOwnerBookings(nonExistentOwnerId, State.ALL);
         });
 
         assertThat(exception.getMessage()).isEqualTo("У данного пользователя нет предметов");
