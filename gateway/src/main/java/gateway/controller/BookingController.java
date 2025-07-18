@@ -22,6 +22,7 @@ public class BookingController {
 
 
     @PostMapping
+    @Validated
     public ResponseEntity<BookingDto> createBooking(@Valid @RequestBody RequestBookingDto requestBookingDto,
                                                     @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Запрос на создание бронирования: {}, для пользователя с ID {}", requestBookingDto, userId);
