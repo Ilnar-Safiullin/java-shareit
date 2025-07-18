@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class BookingServiceImplIntegrationTest {
 
     @Autowired
@@ -48,9 +50,13 @@ public class BookingServiceImplIntegrationTest {
 
     @BeforeEach
     public void setUp() {
+        bookingStorage.deleteAll();
+        itemStorage.deleteAll();
+        userStorage.deleteAll();
 
-        owner = new User(null, "Owner", "owner@example.com");
-        booker = new User(null, "User", "user@example.com");
+        String timestamp = String.valueOf(System.currentTimeMillis()); //H2 на гитхаб почемуто не ролбекает базу, а локально все норм было, пришлось добавить
+        owner = new User(null, "Owner", "owner_" + timestamp + "@example.com");
+        booker = new User(null, "User", "user_" + timestamp + "@example.com");
         userStorage.save(owner);
         userStorage.save(booker);
 
@@ -108,10 +114,13 @@ public class BookingServiceImplIntegrationTest {
     @Test
     @Rollback
     public void testGetOwnerBookings_NoItems() {
-        Long nonExistentOwnerId = booker.getId();
+        User userWithoutItems = new User(null, "NoItemsUser", "noitems_" + System.currentTimeMillis() + "@example.com");
+        userStorage.save(userWithoutItems);
+
+        assertThat(itemStorage.findByOwnerId(userWithoutItems.getId())).isEmpty();
 
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            bookingService.getOwnerBookings(nonExistentOwnerId, State.ALL);
+            bookingService.getOwnerBookings(userWithoutItems.getId(), State.ALL);
         });
 
         assertThat(exception.getMessage()).isEqualTo("У данного пользователя нет предметов");
