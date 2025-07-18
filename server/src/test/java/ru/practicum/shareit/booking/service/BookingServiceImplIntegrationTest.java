@@ -114,13 +114,11 @@ public class BookingServiceImplIntegrationTest {
     @Test
     @Rollback
     public void testGetOwnerBookings_NoItems() {
-        User userWithoutItems = new User(null, "NoItemsUser", "noitems_" + System.currentTimeMillis() + "@example.com");
+        User userWithoutItems = new User(null, "NoItemsUser", "noitems@example.com");
         userStorage.save(userWithoutItems);
 
-        assertThat(itemStorage.findByOwnerId(userWithoutItems.getId())).isEmpty();
-
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            bookingService.getOwnerBookings(nonExistentOwnerId, State.ALL);
+            bookingService.getOwnerBookings(userWithoutItems.getId(), State.ALL);
         });
 
         assertThat(exception.getMessage()).isEqualTo("У данного пользователя нет предметов");
