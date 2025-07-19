@@ -11,19 +11,9 @@ spring:
   sql:
     init:
       mode: always
+    initialization-mode: always
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/shareit
-    username: shareit
-    password: shareit
-
----
-spring:
-  config:
-    activate:
-      on-profile: test
-  datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:shareit
     username: shareit
     password: shareit
