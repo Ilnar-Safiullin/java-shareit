@@ -1,19 +1,11 @@
-server:
-  port: 9090
-
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/shareit
+    username: dbuser
+    password: 12345
   jpa:
     hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        format_sql: true
-  sql:
-    init:
-      mode: always
-    initialization-mode: always
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/shareit
-    username: shareit
-    password: shareit
+      ddl-auto: create-drop
+
+server:
+  port: 9090
