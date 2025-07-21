@@ -8,12 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemBodyDto {
-
     private String name;
-
     private String description;
-
     private Boolean available;
-
     private Long requestId;
 }

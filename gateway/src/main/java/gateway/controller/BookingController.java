@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,13 +15,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "/bookings")
-@Validated
 public class BookingController {
     private final BookingClient bookingClient;
 
 
     @PostMapping
-    @Validated
     public ResponseEntity<BookingDto> createBooking(@Valid @RequestBody RequestBookingDto requestBookingDto,
                                                     @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Запрос на создание бронирования: {}, для пользователя с ID {}", requestBookingDto, userId);

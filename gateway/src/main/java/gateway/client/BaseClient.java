@@ -10,11 +10,13 @@ import org.springframework.web.client.RestTemplate;
 
 
 public abstract class BaseClient {
-
     protected final RestTemplate restTemplate;
+    protected final String serverUrl;
 
-    protected BaseClient(RestTemplate restTemplate) {
+    protected BaseClient(RestTemplate restTemplate,
+                         String serverUrl) {
         this.restTemplate = restTemplate;
+        this.serverUrl = serverUrl;
     }
 
     protected <T> ResponseEntity<T> sendRequest(String url, HttpMethod method, Object requestBody, Class<T> responseType, Long userId) {

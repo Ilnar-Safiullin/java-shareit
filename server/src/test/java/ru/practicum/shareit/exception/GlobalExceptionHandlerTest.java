@@ -63,7 +63,6 @@ class GlobalExceptionHandlerTest {
     void handleValidationException_WithEmptyMessage_ShouldReturnBadRequest() {
         ValidationException exception = new ValidationException("");
 
-        // Act
         ResponseEntity<ErrorResponse> response =
                 globalExceptionHandler.handleValidationException(exception);
 

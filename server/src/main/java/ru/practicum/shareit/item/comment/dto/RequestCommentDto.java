@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.comment.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RequestCommentDto {
-    @NotBlank(message = "Текст комментария должен быть указан")
     private String text;
 }

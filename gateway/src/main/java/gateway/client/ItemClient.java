@@ -5,6 +5,7 @@ import gateway.dto.ItemBodyDto;
 import gateway.dto.ItemDto;
 import gateway.dto.RequestCommentDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -17,39 +18,40 @@ import java.util.List;
 @Slf4j
 @Service
 public class ItemClient extends BaseClient {
-    private final String serverStringUrl = "http://localhost:9090/items";//не могу сделать заглавными ругается чекСтайл. И статик нельзя наверное, он же во всех классах есть
+    private static final String ITEM_PREFIX = "/items";
 
-
-    protected ItemClient(RestTemplate restTemplate) {
-        super(restTemplate);
+    protected ItemClient(RestTemplate restTemplate,
+                         @Value("${shareit-server.url}") String serverUrl) {
+        super(restTemplate, serverUrl);
     }
 
     public ResponseEntity<ItemDto> add(ItemBodyDto itemBodyDto, long userId) {
-        return sendRequest(serverStringUrl, HttpMethod.POST, itemBodyDto, ItemDto.class, userId);
+        String url = serverUrl + ITEM_PREFIX;
+        return sendRequest(url, HttpMethod.POST, itemBodyDto, ItemDto.class, userId);
     }
 
     public ResponseEntity<ItemDto> update(long itemsId, ItemBodyDto itemBodyDto, Long userId) {
-        String url = serverStringUrl + "/" + itemsId;
+        String url = serverUrl + ITEM_PREFIX + "/" + itemsId;
         return sendRequest(url, HttpMethod.PATCH, itemBodyDto, ItemDto.class, userId);
     }
 
     public ResponseEntity<ItemDto> getById(long itemsId) {
-        String url = serverStringUrl + "/" + itemsId;
+        String url = serverUrl + ITEM_PREFIX + "/" + itemsId;
         return sendRequest(url, HttpMethod.GET, null, ItemDto.class, null);
     }
 
     public ResponseEntity<Collection<ItemDto>> getItemsByOwner(Long userId) {
-        String url = serverStringUrl + "?ownerId=" + userId;
+        String url = serverUrl + ITEM_PREFIX + "?ownerId=" + userId;
         return sendRequest(url, HttpMethod.GET, null, new ParameterizedTypeReference<Collection<ItemDto>>() {}, userId);
     }
 
     public ResponseEntity<List<ItemDto>> search(String text, Long userId) {
-        String url = serverStringUrl + "/search?text=" + text;
+        String url = serverUrl + ITEM_PREFIX + "/search?text=" + text;
         return sendRequest(url, HttpMethod.GET, null, new ParameterizedTypeReference<List<ItemDto>>() {}, userId);
     }
 
     public ResponseEntity<CommentDto> addComment(Long itemId, RequestCommentDto requestCommentDto, Long userId) {
-        String url = serverStringUrl + "/" + itemId + "/comment";
+        String url = serverUrl + ITEM_PREFIX + "/" + itemId + "/comment";
         return sendRequest(url, HttpMethod.POST, requestCommentDto, CommentDto.class, userId);
     }
 
